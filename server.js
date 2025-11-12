@@ -23,15 +23,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // ===== CORS =====
-app.use(cors({
-  origin: [
-    "https://form-builder-frontend-cyan-omega.vercel.app",
-    "http://localhost:5173"
-   ] ,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+  cors({
+    origin: [
+      "https://form-builder-frontend-cyan-omega.vercel.app", // your Vercel frontend
+      "http://localhost:5173" // for local dev
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // allow cookies/sessions
+  })
+);
 
 // ===== Multer Configuration =====
 const storage = multer.diskStorage({
@@ -60,18 +62,24 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
 // ===== Session =====
-app.use(session({
-  secret: process.env.SESSION_SECRET || "SECRET_KEY", 
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-  }),
-  cookie: {
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
-  },
-}));
+app.set("trust proxy", 1); 
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "SECRET_KEY",
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: true, 
+      sameSite: "none", 
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
 
 // ===== Routes =====
 app.use("/api/users", userRoutes);
