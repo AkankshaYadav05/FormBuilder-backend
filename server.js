@@ -79,10 +79,10 @@ app.use("/api/responses", responseRoutes);
 
 // ===== Serve Uploaded Files and frontend =====
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
-app.get('*', (_,res) => {
-   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-});
+// app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// app.get('*', (_,res) => {
+//    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+// });
 
 // ===== Test Route =====
 app.get("/api/test", (req, res) => {
