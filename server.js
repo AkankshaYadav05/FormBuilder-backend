@@ -25,7 +25,7 @@ const app = express();
 // ===== CORS =====
 app.use(cors({
   origin: [
-    "https://formbuilder-backend-j8sk.onrender.com",
+    "https://form-builder-frontend-cyan-omega.vercel.app",
     "http://localhost:5173"
    ] ,
   credentials: true,
