@@ -25,6 +25,7 @@ const app = express();
 // ===== CORS =====
 app.use(cors({
   origin: [
+    "https://formbuilder-backend-j8sk.onrender.com",
     "http://localhost:5173"
    ] ,
   credentials: true,
