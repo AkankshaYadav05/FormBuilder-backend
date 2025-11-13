@@ -26,12 +26,12 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://form-builder-frontend-cyan-omega.vercel.app", // your Vercel frontend
-      "http://localhost:5173" // for local dev
+      "https://form-builder-frontend-cyan-omega.vercel.app", 
+      "http://localhost:5173" 
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // allow cookies/sessions
+    credentials: true, 
   })
 );
 

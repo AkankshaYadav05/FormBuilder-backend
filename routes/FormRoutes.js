@@ -88,26 +88,28 @@ router.put('/:id', requireLogin, async (req, res) => {
 
 // DELETE /api/forms/:id - Delete form
 router.delete('/:id', requireLogin, async (req, res) => {
-  router.delete('/:id', requireLogin, async (req, res) => {
   try {
     const form = await Form.findById(req.params.id);
     if (!form) return res.status(404).json({ message: 'Form not found' });
 
     // check ownership
     if (form.user.toString() !== req.session.userId) {
+      console.log("Session ID:", req.session.userId);
       return res.status(403).json({ message: 'Not authorized to delete this form' });
     }
 
     await form.deleteOne();
     await Response.deleteMany({ formId: req.params.id });
 
-    res.json({ message: 'Form and responses deleted successfully' });
+    console.log("✅ Form deleted:", req.params.id);
+    res.status(200).json({ message: 'Form and responses deleted successfully' });
   } catch (err) {
-    console.error('Error deleting form:', err);
+    console.error('❌ Error deleting form:', err);
     res.status(500).json({ message: err.message });
   }
 });
-});
+
+
 
 // POST /api/forms/:id/submit - Submit form response
 router.post("/:id/submit", async (req, res) => {
