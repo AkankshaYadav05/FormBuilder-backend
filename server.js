@@ -109,8 +109,6 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI, {
   tls: true,
   tlsAllowInvalidCertificates: false, 
-  useNewUrlParser: true,
-  useUnifiedTopology: true
 })
 .then(() => {
   console.log("MongoDB connected");
