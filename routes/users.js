@@ -4,7 +4,6 @@ import User from "../models/user.js";
 import Form from "../models/Form.js";
 import Response from "../models/Response.js";
 
-
 const router = express.Router();
 
 // ===== SIGNUP =====
@@ -29,20 +28,32 @@ router.post("/signup", async (req, res) => {
 // ===== LOGIN =====
 router.post("/login", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
-    const user = await User.findOne({ $or: [{ username }, { email }] });
-    if (!user) return res.status(400).json({ msg: "User doesn't exist" });
+    if (!email || !password) {
+      return res.status(400).json({ msg: "Email and password required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user || !user.password) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
 
     req.session.userId = user._id;
-    res.status(200).json({ msg: "Login successful", username: user.username });
+    res.json({ msg: "Login successful", username: user.username });
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ msg: "Server error" });
   }
 });
+
+
 
 // ===== GET PROFILE =====
 router.get("/profile", async (req, res) => {

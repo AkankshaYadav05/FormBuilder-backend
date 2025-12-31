@@ -15,6 +15,12 @@ import userRoutes from "./routes/users.js";
 import formRoutes from "./routes/FormRoutes.js";
 import responseRoutes from "./routes/responses.js";
 
+console.log("ENV CHECK:", {
+  NODE_ENV: process.env.NODE_ENV,
+  MONGO_URI: !!process.env.MONGO_URI,
+  SESSION_SECRET: !!process.env.SESSION_SECRET,
+});
+
 
 // ===== Setup __dirname in ES modules =====
 const __filename = fileURLToPath(import.meta.url);
@@ -25,15 +31,21 @@ const app = express();
 // ===== CORS =====
 app.use(
   cors({
-    origin: [
-      "https://form-builder-frontend-cyan-omega.vercel.app", 
-      "http://localhost:5173" 
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, 
+    origin: (origin, callback) => {
+      const allowed = [
+        "https://form-builder-frontend-cyan-omega.vercel.app",
+        "http://localhost:5173"
+      ];
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
+
 
 // ===== Multer Configuration =====
 const storage = multer.diskStorage({
@@ -66,7 +78,8 @@ app.set("trust proxy", 1);
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "SECRET_KEY",
+    name: "connect.sid",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -74,12 +87,14 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
-      secure: true, 
-      sameSite: "none", 
+      secure: process.env.NODE_ENV === "production", // 🔑
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     },
   })
 );
+
+
 
 // ===== Routes =====
 app.use("/api/users", userRoutes);
