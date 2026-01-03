@@ -30,7 +30,7 @@ app.use(
       "http://localhost:5173" 
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type"],
     credentials: true, 
   })
 );
@@ -62,20 +62,27 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
 // ===== Session =====
-app.set("trust proxy", 1); 
+app.set("trust proxy", 1);
+
+const isProd = process.env.NODE_ENV === "production";
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "SECRET_KEY",
+  name: "formbuilder.sid",
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI, // ✅ no quotes here
+    mongoUrl: process.env.MONGO_URI,
   }),
   cookie: {
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24, // 1 day
+    secure: isProd,                 // ✅ true only in production
+    sameSite: isProd ? "none" : "lax", // ✅ prod vs local
+    maxAge: 1000 * 60 * 60 * 24,
   },
 }));
+
 
 // ===== Routes =====
 app.use("/api/users", userRoutes);
