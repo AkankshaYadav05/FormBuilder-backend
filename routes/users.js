@@ -4,6 +4,7 @@ import User from "../models/user.js";
 import Form from "../models/Form.js";
 import Response from "../models/Response.js";
 
+
 const router = express.Router();
 
 // ===== SIGNUP =====
@@ -35,7 +36,6 @@ router.post("/login", async (req, res) => {
     }
 
     const user = await User.findOne({ email });
-
     if (!user || !user.password) {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
@@ -46,14 +46,12 @@ router.post("/login", async (req, res) => {
     }
 
     req.session.userId = user._id;
-    res.json({ msg: "Login successful", username: user.username });
+    res.status(200).json({ msg: "Login successful", username: user.username });
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
+    console.error(err);
     res.status(500).json({ msg: "Server error" });
   }
 });
-
-
 
 // ===== GET PROFILE =====
 router.get("/profile", async (req, res) => {
@@ -61,6 +59,7 @@ router.get("/profile", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ msg: "Not logged in" });
     }
+
 
     const user = await User.findById(req.session.userId)
       .select("username email profileImage createdAt");

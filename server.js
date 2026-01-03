@@ -15,12 +15,6 @@ import userRoutes from "./routes/users.js";
 import formRoutes from "./routes/FormRoutes.js";
 import responseRoutes from "./routes/responses.js";
 
-console.log("ENV CHECK:", {
-  NODE_ENV: process.env.NODE_ENV,
-  MONGO_URI: !!process.env.MONGO_URI,
-  SESSION_SECRET: !!process.env.SESSION_SECRET,
-});
-
 
 // ===== Setup __dirname in ES modules =====
 const __filename = fileURLToPath(import.meta.url);
@@ -31,21 +25,15 @@ const app = express();
 // ===== CORS =====
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const allowed = [
-        "https://form-builder-frontend-cyan-omega.vercel.app",
-        "http://localhost:5173"
-      ];
-      if (!origin || allowed.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: [
+      "https://form-builder-frontend-cyan-omega.vercel.app", 
+      "http://localhost:5173" 
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, 
   })
 );
-
 
 // ===== Multer Configuration =====
 const storage = multer.diskStorage({
@@ -76,25 +64,18 @@ app.use(cookieParser());
 // ===== Session =====
 app.set("trust proxy", 1); 
 
-app.use(
-  session({
-    name: "connect.sid",
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-    }),
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // 🔑
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24,
-    },
-  })
-);
-
-
+app.use(session({
+  secret: process.env.SESSION_SECRET || "SECRET_KEY",
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI, // ✅ no quotes here
+  }),
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+  },
+}));
 
 // ===== Routes =====
 app.use("/api/users", userRoutes);

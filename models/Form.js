@@ -30,9 +30,8 @@ const FormSchema = new mongoose.Schema({
 });
 
 
-FormSchema.pre('save', function(next) {
+FormSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 export default mongoose.model("Form", FormSchema);
