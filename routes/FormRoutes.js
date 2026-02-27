@@ -20,11 +20,17 @@ router.get('/', async (req, res) => {
 // POST /api/forms - Create new form
 router.post('/', requireLogin, uploadDocument.single('file'), async (req, res) => {
   try {
-    const newForm = new Form({
+    const formData = {
       title: req.body.title,
       description: req.body.description,
-      file: req.file.path,
-    });
+      user: req.session.userId,
+    };
+    
+    if (req.file) {
+      formData.file = req.file.path;
+    }
+    
+    const newForm = new Form(formData);
     await newForm.save();
     res.status(201).json(newForm);
   } catch (err) {
