@@ -1,19 +1,26 @@
+// load environment variables before any other imports
+import 'dotenv/config';
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import MongoStore from "connect-mongo";
-import multer from "multer";
-import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
-dotenv.config();
+// debug log loaded credentials so mis-spellings are obvious
+console.log('env loaded:', {
+  CLOUD_NAME: process.env.CLOUD_NAME,
+  CLOUD_API_KEY: !!process.env.CLOUD_API_KEY,
+  CLOUD_API_SECRET: !!process.env.CLOUD_API_SECRET,
+});
 
 import userRoutes from "./routes/users.js";
 import formRoutes from "./routes/FormRoutes.js";
 import responseRoutes from "./routes/responses.js";
+import uploadRoute from "./routes/upload.js";
 
 
 // ===== Setup __dirname in ES modules =====
@@ -34,27 +41,6 @@ app.use(
     credentials: true, 
   })
 );
-
-// ===== Multer Configuration =====
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(process.cwd(), 'uploads')); // save in uploads folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname); // or add timestamp for uniqueness
-  }
-});
-
-const upload = multer({ storage });
-
-// ===== File Upload Endpoint =====
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-  // Return file path for frontend to save in DB
-  res.json({ filePath: `/uploads/${req.file.filename}` });
-});
-
 
 // ===== Middleware =====
 app.use(express.json());
@@ -88,13 +74,7 @@ app.use(session({
 app.use("/api/users", userRoutes);
 app.use("/api/forms", formRoutes);
 app.use("/api/responses", responseRoutes);
-
-// ===== Serve Uploaded Files and frontend =====
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// app.use(express.static(path.join(__dirname, "../frontend/dist")));
-// app.get('*', (_,res) => {
-//    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-// });
+app.use("/api/upload", uploadRoute);
 
 // ===== Test Route =====
 app.get("/api/test", (req, res) => {

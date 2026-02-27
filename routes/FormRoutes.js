@@ -1,6 +1,7 @@
 import express from 'express';
 import Form from '../models/Form.js';
 import Response from "../models/Response.js";
+import { uploadDocument } from '../upload.js';
 import { requireLogin } from '../middleware.js';
 
 const router = express.Router();
@@ -17,18 +18,15 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/forms - Create new form
-router.post('/', requireLogin, async (req, res) => {
+router.post('/', requireLogin, uploadDocument.single('file'), async (req, res) => {
   try {
-    const formData = {
-      ...req.body,
-      user: req.session.userId, // creator ID
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const form = new Form(formData);
-    await form.save();
-    res.status(201).json(form);
+    const newForm = new Form({
+      title: req.body.title,
+      description: req.body.description,
+      file: req.file.path,
+    });
+    await newForm.save();
+    res.status(201).json(newForm);
   } catch (err) {
     console.error('Error creating form:', err);
     res.status(500).json({ message: err.message });
@@ -180,6 +178,26 @@ router.get('/:id/responses', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+// POST /api/forms/upload - Upload document to Cloudinary
+router.post(
+  "/upload",
+  requireLogin,
+  uploadDocument.single("file"),
+  async (req, res) => {
+    try {
+      res.status(200).json({
+        filePath: req.file.path,
+        url: req.file.path,
+        public_id: req.file.filename,
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      res.status(500).json({ message: "Document upload failed" });
+    }
+  }
+);
 
 
 
